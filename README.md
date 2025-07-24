@@ -1,167 +1,188 @@
-# URL Shortener Service
+# URL Shortener API
 
-## Overview
-Build a simple URL shortening service similar to bit.ly or tinyurl. This assignment tests your ability to design and implement a small but complete feature from scratch.
+A simple, thread-safe URL shortener service built with Flask using Python built-in data structures for in-memory storage.
 
-## Getting Started
+## Features
 
-### Prerequisites
-- Python 3.8+ installed
-- 3 hours of uninterrupted time
+* ✅ Shortens long URLs to 6-character codes
+* 🔁 Redirects short codes to original URLs
+* 📊 Tracks click counts and creation timestamps
+* 🧠 Thread-safe using Python's `threading.RLock`
+* 🔍 Prevents duplicate URLs (returns existing short code)
+* 🛡️ Validates URLs with security checks
+* ❌ Handles edge cases and invalid input gracefully
 
-### Setup (Should take < 5 minutes)
-```bash
-# Clone/download this repository
-# Navigate to the assignment directory
-cd url-shortener
+## API Endpoints
 
-# Install dependencies
-pip install -r requirements.txt
+### 1. **Shorten URL**
 
-# Start the application
-python -m flask --app app.main run
+```http
+POST /api/shorten
+Content-Type: application/json
 
-# The API will be available at http://localhost:5000
-# Run tests with: pytest
+{
+  "url": "https://www.example.com"
+}
 ```
 
-### What's Provided
-- Basic Flask application structure
-- Health check endpoints
-- One example test
-- Empty files for your implementation
+**Success (201 Created):**
 
-## Your Task
-
-### Time Limit: 3 Hours
-
-Build a URL shortener service with the following features:
-
-### Core Requirements
-
-1. **Shorten URL Endpoint**
-   - `POST /api/shorten`
-   - Accept a long URL in the request body
-   - Return a short code (e.g., "abc123")
-   - Store the mapping for later retrieval
-
-2. **Redirect Endpoint**
-   - `GET /<short_code>`
-   - Redirect to the original URL
-   - Return 404 if short code doesn't exist
-   - Track each redirect (increment click count)
-
-3. **Analytics Endpoint**
-   - `GET /api/stats/<short_code>`
-   - Return click count for the short code
-   - Return creation timestamp
-   - Return the original URL
-
-### Technical Requirements
-
-- URLs must be validated before shortening
-- Short codes should be 6 characters (alphanumeric)
-- Handle concurrent requests properly
-- Include basic error handling
-- Write at least 5 tests covering core functionality
-
-### Example API Usage
-
-```bash
-# Shorten a URL
-curl -X POST http://localhost:5000/api/shorten \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://www.example.com/very/long/url"}'
-
-# Response: {"short_code": "abc123", "short_url": "http://localhost:5000/abc123"}
-
-# Use the short URL (this redirects)
-curl -L http://localhost:5000/abc123
-
-# Get analytics
-curl http://localhost:5000/api/stats/abc123
-
-# Response: {"url": "https://www.example.com/very/long/url", "clicks": 5, "created_at": "2024-01-01T10:00:00"}
+```json
+{
+  "short_code": "abc123",
+  "original_url": "https://www.example.com",
+  "created_at": "2024-01-01T10:00:00Z"
+}
 ```
 
-## Implementation Guidelines
+**Duplicate (200 OK):**
 
-### What We're Looking For
-
-1. **Code Quality (30%)**
-   - Clean, readable code
-   - Proper error handling
-   - Good API design
-
-2. **Functionality (30%)**
-   - All requirements work correctly
-   - Handles edge cases appropriately
-   - Concurrent request handling
-
-3. **Testing (20%)**
-   - Tests for main functionality
-   - Tests for error cases
-   - Clear test descriptions
-
-4. **Architecture (20%)**
-   - Logical code organization
-   - Separation of concerns
-   - Scalable design decisions
-
-### What to Focus On
-- Get core functionality working first
-- Use appropriate data structures
-- Handle common error cases
-- Keep it simple but complete
-
-### What NOT to Do
-- Don't implement user authentication
-- Don't add a web UI
-- Don't implement custom short codes
-- Don't add rate limiting
-- Don't use external databases (in-memory is fine)
-
-## Evaluation Criteria
-
-Your submission will be evaluated on:
-- Core functionality completeness
-- Code quality and organization
-- Error handling and edge cases
-- Test coverage of critical paths
-- Clear and pragmatic design decisions
-
-## AI Usage Policy
-
-You are permitted to use AI assistants (ChatGPT, GitHub Copilot, etc.) as you would any other tool. If you use AI significantly, please note in a `NOTES.md` file:
-- Which tools you used
-- What you used them for
-- Any AI-generated code you modified or rejected
-
-## Tips
-
-- Start with the URL shortening logic
-- Use Python's built-in data structures
-- Don't overthink the short code generation
-- Focus on functionality over optimization
-- Remember to handle thread safety
-
-## Submission
-
-### Deliverables
-1. Your complete implementation
-2. All tests passing
-3. Brief notes about your approach (optional)
-
-### How to Submit
-1. Ensure all tests pass: `pytest`
-2. Create a zip of your solution
-3. Include any notes about your implementation choices
-4. Share the repository link on https://forms.gle/gpaV5LW5boDFk7uT6
-
-## Questions?
-
-If you have questions about the requirements, please email [anand@retainsure.com] within the first 30 minutes of starting.
+```json
+{
+  "short_code": "abc123",
+  "original_url": "https://www.example.com",
+  "message": "URL already exists"
+}
+```
 
 ---
 
-Good luck! We're excited to see your solution.
+### 2. **Redirect to Original URL**
+
+```http
+GET /<short_code>
+```
+
+* **302 Redirect** to original URL
+* Increments click count
+* **404** if code not found
+
+---
+
+### 3. **Get Analytics**
+
+```http
+GET /api/stats/<short_code>
+```
+
+**Success (200 OK):**
+
+```json
+{
+  "short_code": "abc123",
+  "original_url": "https://www.example.com",
+  "click_count": 5,
+  "created_at": "2024-01-01T10:00:00Z"
+}
+```
+
+---
+
+### 4. **Health Check**
+
+```http
+GET /
+GET /api/health
+```
+
+---
+
+### 5. **Global Statistics**
+
+```http
+GET /api/stats
+```
+
+```json
+{
+  "total_urls": 150,
+  "total_clicks": 1250
+}
+```
+
+---
+
+## Setup Instructions
+
+### Prerequisites
+
+* Python 3.8+
+* pip
+
+### Installation
+
+```bash
+git clone https://github.com/<your-username>/url-shortener
+cd url-shortener
+pip install -r requirements.txt
+```
+
+### Run the Application
+
+```bash
+python -m flask --app app.main run
+```
+
+Visit the API at: [http://localhost:5000](http://localhost:5000)
+
+---
+
+## Run Tests
+
+```bash
+pytest
+pytest -v                     # verbose output
+pytest --cov=app tests/       # coverage report
+```
+
+---
+
+## Project Structure
+
+```
+url-shortener/
+├── app/
+│   ├── __init__.py
+│   ├── main.py      # API endpoints
+│   ├── models.py    # Thread-safe in-memory store
+│   └── utils.py     # URL validation, encoding
+├── tests/           # Pytest test cases
+├── requirements.txt
+├── README.md
+└── Notes.md         # (AI usage notes)
+```
+
+---
+
+## Design Decisions
+
+* **In-memory store**: Fast, no external dependencies
+* **Base62 encoding**: Short, URL-safe, human-readable
+* **Thread-safe RLock**: Ensures safety under concurrency
+* **6-character code**: \~56 billion possible codes
+* **Validation**: Rejects dangerous schemes (e.g., `javascript:`)
+
+---
+
+## Limitations
+
+* No persistent storage (data lost on restart)
+* No authentication (public API)
+* No custom short codes (auto-generated only)
+* Single-instance only (not clustered)
+
+---
+
+## Future Improvements
+
+* Add persistent storage (e.g., SQLite, Redis)
+* Support custom short codes
+* Add rate limiting or API key protection
+* Expiration for old links
+* Web dashboard for analytics
+
+---
+
+## License
+
+This project is provided for evaluation and educational purposes.
